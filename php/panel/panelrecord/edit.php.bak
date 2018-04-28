@@ -1,0 +1,28 @@
+<?php
+require_once(dirname(__FILE__).'../../../lib/init.php');
+//use publicfunc\sqlfunc as sqlfunc;
+$mysql_obj = new sqlfunc();
+$PanelUpdateRecordID = $_POST['PanelUpdateRecordID'];
+
+$PanelMethod=$_POST['PanelMethod'];
+$Version=$_POST['Version'];
+$PanelStatus=$_POST['PanelStatus'];
+$PanelLanchDate=$_POST['PanelLanchDate'];
+$PanelCompleteDate=$_POST['PanelCompleteDate'];
+$PanelDescription=$_POST['PanelDescription'];
+
+$where['PanelUpdateRecordID'] = $PanelUpdateRecordID;
+
+$data['PanelMethod'] = $PanelMethod;
+$data['Version'] = $Version;
+$data['PanelStatus'] = $PanelStatus;
+$data['PanelLanchDate'] = $PanelLanchDate;
+$data['PanelCompleteDate'] = $PanelCompleteDate;
+$data['PanelDescription'] = $PanelDescription;
+
+$data['LatestUpdateDate'] = date("Y-m-d");
+
+$result_all = $mysql_obj->updateq("PanelUpdateRecord",$data,$where);
+
+echo json_encode($result_all);
+?>

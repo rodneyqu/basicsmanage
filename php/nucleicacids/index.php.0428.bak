@@ -1,0 +1,30 @@
+<?php
+require_once(dirname(__FILE__).'../../lib/init.php');
+
+$pageNum = $_POST['pageNum'];
+$pageSize = $_POST['pageSize'];
+$NucleicAcidID = $_POST['NucleicAcidID'];
+$BiospeciemensID = $_POST['BiospeciemensID'];
+
+listNucleicAcids($NucleicAcidID,$pageNum,$pageSize,$BiospeciemensID);
+	
+function listNucleicAcids($NucleicAcidID,$pageNum,$pageSize,$BiospeciemensID){
+	global $mysql_obj;
+	$where['NucleicAcidID'] = $NucleicAcidID;
+	$where['BiospeciemensID'] = $BiospeciemensID;
+	$result_all = $mysql_obj->getpageq("NucleicAcids",$where,$pageNum,$pageSize);
+	if(!empty($result_all['data']) && (is_array($result_all['data']))){
+		foreach($result_all['data'] as $k =>$v){
+			$Name = '';
+			if(($v['NAExtractionManipulatorID'] !== NULL) && ($v['NAExtractionManipulatorID'] !== "")){
+				$where_employee['EmployeeID'] = $v['NAExtractionManipulatorID'];
+				$Employee = $mysql_obj->selectq('Employee',array('FirstName','MiddleName','LastName'),$where_employee);
+				$Name = $Employee[0]['LastName'].$Employee[0]['MiddleName'].$Employee[0]['FirstName'];
+			}		
+			$result_all['data'][$k]['Name'] = $Name;
+		}
+	}
+	echo json_encode($result_all);
+}
+	
+?>

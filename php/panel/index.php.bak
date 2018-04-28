@@ -1,0 +1,80 @@
+<?php
+header('content-type:application:json;charset=utf8');  
+header('Access-Control-Allow-Origin:*');  
+header('Access-Control-Allow-Methods:POST');  
+header('Access-Control-Allow-Headers:x-requested-with,content-type'); 
+require('../publicfunc/sql_func.php');
+$mysql_obj = new sqlfunc();
+
+$pageNum = $_POST['pageNum'];
+$pageSize = $_POST['pageSize'];
+
+$PanelID = $_POST['PanelID'];
+
+$ProjectID = $_POST['ProjectID'];
+$PanelName_cn=$_POST['PanelName_cn'];
+$PanelName_en=$_POST['PanelName_en'];
+$CreateDate=$_POST['CreateDate'];
+$LatestUpdateDate=$_POST['LatestUpdateDate'];
+
+
+$where['PanelID'] = $PanelID;
+
+$where['ProjectID'] = $ProjectID;
+$where['PanelName_cnLIKE'] = $PanelName_cn;
+$where['PanelName_enLIKE'] = $PanelName_en;
+
+if(!($CreateDate === '') && !($CreateDate === null)){//当查找条件包含创建时间时进行特殊处理
+	$sql_where = 'CreateDate >='.'"'.$CreateDate[0].'"'.' AND CreateDate <='.'"'.$CreateDate[1].'"';
+}
+if(!($LatestUpdateDate === '') && !($LatestUpdateDate === null)){
+	if($sql_where ===null){
+		$sql_where = 'LatestUpdateDate >='.'"'.$LatestUpdateDate[0].'"'.' AND LatestUpdateDate <='.'"'.$LatestUpdateDate[1].'"';
+	}else{
+		$sql_where .= 'LatestUpdateDate >='.'"'.$LatestUpdateDate[0].'"'.' AND LatestUpdateDate <='.'"'.$LatestUpdateDate[1].'"';
+	}	
+}
+if( !($sql_where ===null)){
+	if (is_array($where)) {
+			foreach($where as $k => $v){				
+				if(!($v === '') && !($v === null) && !empty($v)){
+					if(is_array($v)){//当循环出来的项为一个数组时，进入or多条件并列逻辑
+						foreach($v as $m => $n){//循环$v
+							foreach($n as $a => $b){
+								if($sql_where ===null){
+									$sql_where .= $a.'='.'"'.addslashes($b).'"';
+								}else{
+									$sql_where .= 'or '.$a.'='.'"'.addslashes($b).'"';
+								}
+							}
+						}
+					}else{
+						if($sql_where === null){
+							if(substr($k,-4) === "LIKE"){
+								$kr = substr($k,0,-4);
+								$sql_where .= $kr .' LIKE '. '"%'.addslashes($v).'%"';
+							}else{
+								$sql_where .= $k.'='.'"'.addslashes($v).'"'; 
+							}
+						}else{
+							if(substr($k,-4) === "LIKE"){
+								$kr = substr($k,0,-4);
+								$sql_where .= ' AND '.$kr .' LIKE '. '"%'.addslashes($v).'%"';
+							}else{
+								$sql_where .= ' AND '.$k.'='.'"'.addslashes($v).'"';
+							}
+						
+						}
+					}
+					
+				}
+			}
+    }
+	$result_all = $mysql_obj->getpageq("Panel",$sql_where,$pageNum,$pageSize);
+}else{
+	$result_all = $mysql_obj->getpageq("Panel",$where,$pageNum,$pageSize);
+}
+
+echo json_encode($result_all);
+
+?>
